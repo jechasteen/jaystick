@@ -23,7 +23,11 @@ int main()
         // limit the polling rate
         usleep(50000);
         js0.poll(&event);
+<<<<<<< HEAD
         if (event.isButton())
+=======
+        if (event.isButton)
+>>>>>>> 5288719aa16df818ef4f7629e1a8cf8f57d95fd9
         {
             std::cout << "BUTTON EVENT: #" << event.number
                       << " Value: " << event.value;
