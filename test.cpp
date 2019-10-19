@@ -1,4 +1,4 @@
-#include "j.h"
+#include "joystick.h"
 
 void p(JoystickEvent* e)
 {
@@ -15,29 +15,19 @@ int main ()
               << "\nButtons: " << info->nButtons
               << "\nAxes: " << info->nAxes << std::endl;
     
-    // while (1)
-    // {
-    //     usleep(50000);
-    //     js0.poll(&event);
-    //     if (false && event.isButton())
-    //     {
-    //         std::string btnStatus = (event.value & 0x01) != 0  ? "Pressed" : "Released";
-    //         std::cout << "BUTTON#" << event.number
-    //                   << (int)event.number << " "
-    //                   << btnStatus << std::endl;
-    //     }
-    //     event = empty_event;
-    // }
-    
-    for (int i = 0; i < info->nButtons; i++)
-    {
-        js0.addEventListener(JS_EVENT_BUTTON, i, p);
-    }
-
-    while (true)
+    while (1)
     {
         usleep(50000);
         js0.poll(&event);
+        if (event.isButton())
+        {
+            std::string btnStatus = (event.value & 0x01) != 0  ? "Pressed" : "Released";
+            std::cout << "BUTTON#" << event.number
+                      << (int)event.number << " "
+                      << btnStatus << std::endl;
+        }
+        // Do this otherwise we get the same event each time we poll if nothing has changed
+        event = js_empty_event;
     }
 
     return 0;

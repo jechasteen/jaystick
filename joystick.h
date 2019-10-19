@@ -33,7 +33,7 @@ public:
 };
 
 // Use this empty class instance to clear an event
-static const JoystickEvent empty_event;
+static const JoystickEvent js_empty_event;
 
 class Joystick
 {
@@ -41,7 +41,7 @@ public:
     Joystick(unsigned int index = 0)
     {
         char name[100];
-        unsigned int nButtons, nAxes;
+        unsigned int nButtons, nAxes, init_counter = 0;
         JoystickEvent init_event;
 
         _info.path << "/dev/input/js" << index;
@@ -54,22 +54,19 @@ public:
         // Now that we have joystick metadata, we can set the size of these
         unsigned char buttonState[_info.nButtons];
         int axisState[_info.nAxes];
-        std::function<void(JoystickEvent*)> buttonCallbacks[_info.nButtons];
-        _buttonCallbacks = buttonCallbacks;
-        std::function<void(JoystickEvent*)> axisCallbacks[_info.nAxes];
-        _axisCallbacks = axisCallbacks;
 
         if (_fd > 0) std::cout << "Opened js" << index << std::endl;
 
         // Set the initial state
         read(_fd, &init_event, sizeof(JoystickEvent*));
-        while (init_event.isInit())
+        while (init_event.isInit() && init_counter < ((_info.nButtons + _info.nAxes) - 2))
         {
             if (init_event.isButton())
                 buttonState[init_event.number] = init_event.value;
             else if (init_event.isAxis())
                 axisState[init_event.number] = init_event.value;
             read(_fd, &init_event, sizeof(JoystickEvent*));
+            init_counter++;
         }
         _info.bstate = buttonState;
         _info.astate = axisState;
@@ -81,43 +78,8 @@ public:
 
     void poll(JoystickEvent* event) {
         read(_fd, event, sizeof(*event));
-        if (event->isButton() && _buttonCallbacks[(unsigned int)event->number] != NULL)
-        {
-            _buttonCallbacks[(unsigned int)event->number](event);
-        }
-    }
-
-    void addEventListener(unsigned char eventType, int index, std::function<void(JoystickEvent*)> callback)
-    {
-        switch (eventType)
-        {
-        case JS_EVENT_BUTTON:
-            _buttonCallbacks[index] = callback;
-            break;
-        case JS_EVENT_AXIS:
-            _axisCallbacks[index] = callback;
-            break;
-        default:
-            break;
-        }
-    }
-    void deleteEventListener(unsigned char eventType, unsigned int index)
-    {
-        switch (eventType)
-        {
-        case JS_EVENT_BUTTON:
-            _buttonCallbacks[index] = NULL;
-            break;
-        case JS_EVENT_AXIS:
-            _axisCallbacks[index] = NULL;
-            break;
-        default:
-            break;
-        }
     }
 private:
     int _fd;
     js_info _info;
-    std::function<void(JoystickEvent*)> *_buttonCallbacks;
-    std::function<void(JoystickEvent*)> *_axisCallbacks;
 };

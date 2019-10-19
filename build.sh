@@ -1,0 +1,1 @@
+g++ -Wall -o test test.cpp joystick.h -fpermissive
