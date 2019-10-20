@@ -1,3 +1,4 @@
+#include <iostream>
 #include "joystick.h"
 
 void p(JoystickEvent* e)

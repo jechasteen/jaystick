@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <sstream>
 #include <functional>
@@ -8,8 +7,35 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/joystick.h>
 
+// Event Constants
+#define JS_EVENT_BUTTON     0x01    // button pressed/released
+#define JS_EVENT_AXIS       0x02    // joystick moved
+#define JS_EVENT_INIT       0x80    // initial state
+#define JS_EVENT_INIT_BUTTON    JS_EVENT_BUTTON & JS_EVENT_INIT
+#define JS_EVENT_INIT_AXIS      JS_EVENT_AXIS & JS_EVENT_INIT
+
+// Event Data
+struct js_event
+{
+    unsigned int time;       // event timestamp in milliseconds
+    short value;            // value
+    unsigned char type;     // event type (see above)
+    unsigned char number;   // axis/button number
+};
+
+// IOCTL commands
+#define JSIOCGVERSION		_IOR('j', 0x01, __u32)	        // get driver version
+#define JSIOCGAXES	        _IOR('j', 0x11, __u8)		    // get number of axes
+#define JSIOCGBUTTONS		_IOR('j', 0x12, __u8)			// get number of buttons
+#define JSIOCGNAME(len)		_IOC(_IOC_READ, 'j', 0x13, len) // get identifier string
+// NOT USED INTERNALLY from /usr/include/linux/joystick.h
+#define JSIOCSAXMAP		    _IOW('j', 0x31, __u8[ABS_CNT])			        // set axis mapping
+#define JSIOCGAXMAP		    _IOR('j', 0x32, __u8[ABS_CNT])			        // get axis mapping
+#define JSIOCSBTNMAP		_IOW('j', 0x33, __u16[KEY_MAX - BTN_MISC + 1])	// set button mapping
+#define JSIOCGBTNMAP		_IOR('j', 0x34, __u16[KEY_MAX - BTN_MISC + 1])	// get button mapping
+
+// Joystick Metadata
 struct js_info
 {
     std::stringstream path;
@@ -29,7 +55,6 @@ public:
     bool isButton() { return (type & JS_EVENT_BUTTON) != 0; }
     bool isAxis() { return (type & JS_EVENT_AXIS) != 0; }
     bool isInit() { return (type & JS_EVENT_INIT) != 0; }
-    friend std::ostream& operator<<(std::ostream& os, const JoystickEvent& e);
 };
 
 // Use this empty class instance to clear an event
@@ -55,8 +80,6 @@ public:
         unsigned char buttonState[_info.nButtons];
         int axisState[_info.nAxes];
 
-        if (_fd > 0) std::cout << "Opened js" << index << std::endl;
-
         // Set the initial state
         read(_fd, &init_event, sizeof(JoystickEvent*));
         while (init_event.isInit() && init_counter < ((_info.nButtons + _info.nAxes) - 2))
@@ -70,7 +93,6 @@ public:
         }
         _info.bstate = buttonState;
         _info.astate = axisState;
-        std::cout << "Connected.";
     }
 
     js_info* info() { return &_info; }
