@@ -14,13 +14,13 @@ int main()
     JoystickEvent event;
     js_info* info = js0.info();
 
-    std::cout << "\nName: " << info->name
+    std::cout << "\nName:    " << info->name
               << "\nButtons: " << info->nButtons
-              << "\nAxes: " << info-nAxes << std::endl;
+              << "\nAxes:    " << info-nAxes << std::endl;
     
     while (true)
     {
-        // limit the polling rate
+        // set the polling rate
         usleep(50000);
         js0.poll(&event);
         if (event.isButton())
@@ -28,7 +28,12 @@ int main()
             std::cout << "BUTTON EVENT: #" << event.number
                       << " Value: " << event.value;
         }
-        // Nullify the event, otherwise we get the same data next poll (nothing has replaced it)
+        if (event.isAxis())
+        {
+            std::cout << "AXIS EVENT: #" << event.number <<
+                      << " Value: " << event.value;
+        }
+        // Nullify the event, otherwise we get the same data next poll
         event = js_empty_event;
     }
     

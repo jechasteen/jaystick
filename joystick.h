@@ -52,6 +52,7 @@ public:
     short value;
     unsigned char type;
     unsigned char number;
+    JoystickEvent() {}
     bool isButton() { return (type & JS_EVENT_BUTTON) != 0; }
     bool isAxis() { return (type & JS_EVENT_AXIS) != 0; }
     bool isInit() { return (type & JS_EVENT_INIT) != 0; }
@@ -66,7 +67,7 @@ public:
     Joystick(unsigned int index = 0)
     {
         char name[100];
-        unsigned int nButtons, nAxes, init_counter = 0;
+        unsigned int init_counter = 0;
         JoystickEvent init_event;
 
         _info.path << "/dev/input/js" << index;
@@ -98,8 +99,14 @@ public:
     js_info* info() { return &_info; }
     bool connected() { return _fd >= 0; }
 
-    void poll(JoystickEvent* event) {
+    void poll(JoystickEvent* event)
+    {
         read(_fd, event, sizeof(*event));
+    }
+
+    void poll(JoystickEvent* event, void (*cb)(JoystickEvent* e)) {
+        read(_fd, event, sizeof(*event));
+        cb(event);
     }
 private:
     int _fd;

@@ -1,9 +1,14 @@
 #include <iostream>
 #include "joystick.h"
 
-void p(JoystickEvent* e)
+void handleEvent(JoystickEvent* e)
 {
-    std::cout << "BUTTON PRESSED";
+    if (e->isButton())
+        std::cout << "BUTTON #" << (int)e->number << " : " << e->value << std::endl;
+    if (e->isAxis())
+        std::cout << "AXIS #" << (int)e->number << " : " << e->value << std:: endl;
+    // clear the event so we don't think it's a new one next time around
+    *e = js_empty_event;
 }
 
 int main ()
@@ -18,17 +23,15 @@ int main ()
     
     while (1)
     {
+        // set the polling rate
         usleep(50000);
+
+        // poll the device, populating 'event'
         js0.poll(&event);
-        if (event.isButton())
-        {
-            std::string btnStatus = (event.value & 0x01) != 0  ? "Pressed" : "Released";
-            std::cout << "BUTTON#" << event.number
-                      << (int)event.number << " "
-                      << btnStatus << std::endl;
-        }
-        // Do this otherwise we get the same event each time we poll if nothing has changed
-        event = js_empty_event;
+        handleEvent(&event);
+
+        // or with a callback
+        // js0.poll(&event, handleEvent);
     }
 
     return 0;
