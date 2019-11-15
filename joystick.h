@@ -63,6 +63,9 @@ static const JoystickEvent js_empty_event;
 
 class Joystick
 {
+private:
+    int _fd;
+    js_info _info = {};
 public:
     Joystick(unsigned int index = 0)
     {
@@ -96,7 +99,7 @@ public:
         _info.astate = axisState;
     }
 
-    js_info* info() { return &_info; }
+    js_info info() { return _info; }
     bool connected() { return _fd >= 0; }
 
     void poll(JoystickEvent* event)
@@ -108,7 +111,4 @@ public:
         read(_fd, event, sizeof(*event));
         cb(event);
     }
-private:
-    int _fd;
-    js_info _info;
 };

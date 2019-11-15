@@ -15,11 +15,9 @@ int main ()
 {
     Joystick js0;
     JoystickEvent event;
-
-    js_info* info = js0.info();
-    std::cout << "\nName: " << info->name
-              << "\nButtons: " << info->nButtons
-              << "\nAxes: " << info->nAxes << std::endl;
+    std::cout << "\nName: " << js0.info().name
+              << "\nButtons: " << js0.info().nButtons
+              << "\nAxes: " << js0.info().nAxes << std::endl;
     
     while (1)
     {
